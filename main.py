@@ -100,4 +100,4 @@ def redirect_to_url(code):
         return jsonify({"error": "URL not found"}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
