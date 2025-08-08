@@ -1,37 +1,45 @@
 from flask import request, redirect, jsonify, Blueprint
 from app.db.mongo import get_collection
 from app.services.shortener import generate_short_code
+from app.utils.sanitize import sanitize_url
 
 url_blueprint = Blueprint('url', __name__)
 @url_blueprint.route('/shorten', methods=['POST'])
 def shorten_url():
     data = request.get_json()
-
     collection = get_collection()
+    
+    
     if not data or 'url' not in data:
         return jsonify({"error": "Invalid input"}), 400
     
+    raw_url = data['url'].strip()
+    if not raw_url.startswith(('http://', 'https://')):
+        return jsonify({"error": "URL must start with http:// or https://"}), 400
+
+
+    sanitized_url = sanitize_url(raw_url)
+
+    if not sanitized_url:
+        return jsonify({"error": "Invalid URL"}), 400    
     #check existence of the URL
-    existing_entry = collection.find_one({"url": data['url']})
+    existing_entry = collection.find_one({"url": sanitized_url})
     if existing_entry:
         code = existing_entry['code']
-        new_url = f"{request.host_url}{code}"
+        new_url = f"shortit/{code}"
         return jsonify({"new_url": new_url}), 200
 
-    url = data['url']
-    if not url.startswith(('http://', 'https://')):
-        return jsonify({"error": "URL must start with http:// or https://"}), 400
 
     #generating the short code
     code = generate_short_code()
 
     #adding the url and code to the database
     try:
-        collection.insert_one({"url": url, "code": code})
+        collection.insert_one({"url": sanitized_url, "code": code})
     except Exception as e:  
         return jsonify({"error": str(e)}), 500
 
-    new_url = f"{request.host_url}{code}"
+    new_url = f"shortit/{code}"
     return jsonify({"new_url": new_url}), 201
 
 

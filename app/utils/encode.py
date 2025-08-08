@@ -1,6 +1,6 @@
 
 BASE62_ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
+#don't change this
 def encode_base62(num):
     if num == 0:
         return BASE62_ALPHABET[0]
