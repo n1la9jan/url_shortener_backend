@@ -2,6 +2,8 @@ from flask import request, redirect, jsonify, Blueprint
 from app.db.mongo import get_collection
 from app.services.shortener import generate_short_code
 from app.utils.sanitize import sanitize_url
+from app.utils.cache import get_cached_value
+
 
 url_blueprint = Blueprint('url', __name__)
 @url_blueprint.route('/shorten', methods=['POST'])
@@ -45,10 +47,9 @@ def shorten_url():
 
 @url_blueprint.route('/<code>', methods=['GET'])
 def redirect_to_url(code):
-    
-    collection = get_collection()
-    entry = collection.find_one({"code": code})
-    if entry:
-        return redirect(entry['url'], code=302)
+    url = get_cached_value(code)
+
+    if url:
+        return redirect(url, code=302)
     else:
         return jsonify({"error": "URL not found"}), 404
