@@ -26,7 +26,7 @@ def shorten_url():
     existing_entry = collection.find_one({"url": sanitized_url})
     if existing_entry:
         code = existing_entry['code']
-        new_url = f"shortit/{code}"
+        new_url = f"{request.host_url}{code}"
         return jsonify({"new_url": new_url}), 200
 
 
@@ -39,7 +39,7 @@ def shorten_url():
     except Exception as e:  
         return jsonify({"error": str(e)}), 500
 
-    new_url = f"shortit/{code}"
+    new_url = f"{request.host_url}{code}"
     return jsonify({"new_url": new_url}), 201
 
 
